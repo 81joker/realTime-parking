@@ -81,3 +81,12 @@ jobs:
       if: hashFiles('**/package.json') != ''
       run: npm run build
 
+      # --- OPTIONAL: UPLOAD BUILD ARTIFACTS (e.g. for deploy job) ---
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-build
+        path: |
+          public/build
+          public/mix-manifest.json
+        if-no-files-found: ignore
