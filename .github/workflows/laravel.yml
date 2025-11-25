@@ -53,6 +53,31 @@ jobs:
       run: php artisan test
 
     - name: Install Pint
-      run: composer require laravel/pint --dev
-    - name: Run Pint
       run: vendor/bin/pint --test
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install frontend dependencies
+      if: hashFiles('**/package.json') != ''
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+
+    - name: Build frontend assets
+      if: hashFiles('**/package.json') != ''
+      run: npm run build
+
