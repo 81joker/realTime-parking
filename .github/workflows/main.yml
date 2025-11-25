@@ -15,19 +15,19 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.3
- 
+
       - name: Create database
         run: touch ./database/database.sqlite
-  
+
       - name: Copy .env
         run: cp .env.test .env
 
-      - name: Install app
-        run: composer install
- 
-      - name: Run migrations
+      - name: Install app (runner)
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run migrations (runner)
         run: php artisan migrate
- 
+
       - name: Test PHPStan
         run: ./vendor/bin/phpstan analyse
 
@@ -43,23 +43,46 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-              cd ${{ secrets.APP_PATH }}
-              
-              echo "Running deploy script"
+              set -e
 
-              echo "[1/5] Pulling from GitHub"
-              git pull origin
+              cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
 
-              echo "[2/5] Creating database if one isn't found"
+              echo "Running deploy script on remote host: $(hostname)"
+
+              echo "Repository remotes:"
+              git remote -v || true
+
+              BRANCH="${{ github.ref_name }}"
+              if [ -z "$BRANCH" ]; then
+                BRANCH="main"
+              fi
+              echo "Deploying branch: $BRANCH"
+
+              echo "[1/6] Fetching remotes"
+              git fetch --all --prune || echo "git fetch failed (continuing to try pull)"
+
+              echo "[2/6] Resetting to origin/$BRANCH (will discard local changes)"
+              if ! git reset --hard origin/"$BRANCH"; then
+                echo "Reset failed — attempting git pull origin $BRANCH"
+                git pull origin "$BRANCH" || { echo "git pull also failed"; exit 1; }
+              fi
+
+              echo "[3/6] Ensure database file exists"
               touch database/database.sqlite
 
-              echo "[3/5] Installing packages using composer"
-              composer install
+              echo "[4/6] Installing composer dependencies (remote)"
+              composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader
 
-              echo "[4/5] Publishing API Platform assets"
-              php artisan api-platform:install
-
-              echo "[5/5] Migrating database"
+              echo "[5/6] Running artisan tasks"
               php artisan migrate --force
+              php artisan config:cache || true
+              php artisan route:cache || true
+              php artisan view:cache || true
+
+              echo "[6/6] Fix permissions and finish"
+              chown -R www-data:www-data storage bootstrap/cache || true
+
+              echo "Deployed commit:"
+              git --no-pager log -1 --pretty=oneline
 
               echo "The app has been built and deployed!"
