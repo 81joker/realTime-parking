@@ -90,3 +90,39 @@ jobs:
           public/build
           public/mix-manifest.json
         if-no-files-found: ignore
+   # ==============================
+  # DEPLOY JOB (CD)
+  # ==============================
+  deploy:
+    # only deploy on pushes to main & when tests job passed
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: laravel-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: app-build
+          path: public
+
+      # Example: deploy via SSH (fill in your server details)
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/u749335993/public_html/__realtime-parking
+            git pull origin main
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+    
