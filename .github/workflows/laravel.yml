@@ -2,9 +2,7 @@ name: Laravel
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   laravel-tests:
@@ -20,6 +18,26 @@ jobs:
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+  
+    - name: Get Composer Cache Directory
+      id: composer-cache-dir
+      run: echo dir=$(composer config cache-files-dir) >> $GITHUB_OUTPUT
+      # run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+    
+    - name: Cache Composer Dependencies
+      uses: actions/cache@v4.3.0
+      with:
+        # This path to be cached 
+        path: ${{ steps.composer-cache-dir.outputs.dir }}
+        # path: vendor
+        # Create a unique key for the cache based on OS and composer.lock file
+        key: composer-${{ hashFiles('**/composer.lock') }}
+        # If key is not found, restore from the following
+        restore-keys: composer-cache-
+      
+
+
     - name: Generate key
       run: php artisan key:generate
     - name: Directory Permissions
