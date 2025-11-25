@@ -1,0 +1,88 @@
+name: Build, test and deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+
+      - name: Create database
+        run: touch ./database/database.sqlite
+
+      - name: Copy .env
+        run: cp .env.test .env
+
+      - name: Install app (runner)
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run migrations (runner)
+        run: php artisan migrate
+
+      - name: Test PHPStan
+        run: ./vendor/bin/phpstan analyse
+
+      - name: Test PHPUnit
+        run: ./vendor/bin/phpunit
+
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+              set -e
+
+              cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
+
+              echo "Running deploy script on remote host: $(hostname)"
+
+              echo "Repository remotes:"
+              git remote -v || true
+
+              BRANCH="${{ github.ref_name }}"
+              if [ -z "$BRANCH" ]; then
+                BRANCH="main"
+              fi
+              echo "Deploying branch: $BRANCH"
+
+              echo "[1/6] Fetching remotes"
+              git fetch --all --prune || echo "git fetch failed (continuing to try pull)"
+
+              echo "[2/6] Resetting to origin/$BRANCH (will discard local changes)"
+              if ! git reset --hard origin/"$BRANCH"; then
+                echo "Reset failed — attempting git pull origin $BRANCH"
+                git pull origin "$BRANCH" || { echo "git pull also failed"; exit 1; }
+              fi
+
+              echo "[3/6] Ensure database file exists"
+              touch database/database.sqlite
+
+              echo "[4/6] Installing composer dependencies (remote)"
+              composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader
+
+              echo "[5/6] Running artisan tasks"
+              php artisan migrate --force
+              php artisan config:cache || true
+              php artisan route:cache || true
+              php artisan view:cache || true
+
+              echo "[6/6] Fix permissions and finish"
+              chown -R www-data:www-data storage bootstrap/cache || true
+
+              echo "Deployed commit:"
+              git --no-pager log -1 --pretty=oneline
+
+              echo "The app has been built and deployed!"
