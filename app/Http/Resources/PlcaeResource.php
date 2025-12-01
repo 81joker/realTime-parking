@@ -15,12 +15,12 @@ class PlcaeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "id" => $this->id,
-            "place_number" => $this->place_number,
-            "status" => $this->status,
-            "sector" => SectorResource::make($this->whenLoaded('sector')),
-            "reservations" => ReservationResource::collection($this->whenLoaded('reservations')),
-                
+            'id' => $this->id,
+            'place_number' => $this->place_number,
+            'status' => $this->status,
+            'sector' => SectorResource::make($this->whenLoaded('sector')),
+            'reservations' => ReservationResource::collection($this->whenLoaded('reservations')),
+
         ];
     }
 }
