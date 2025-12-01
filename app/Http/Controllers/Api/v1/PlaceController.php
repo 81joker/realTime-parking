@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PlcaeResource;
+use App\Http\Resources\PlaceResource;
 use App\Models\Place;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +13,6 @@ class PlaceController extends Controller
     {
         $places = Place::with(['sector', 'reservations'])->get();
 
-        return PlcaeResource::collection($places);
+        return PlaceResource::collection($places);
     }
 }
