@@ -17,7 +17,7 @@ jobs:
           php-version: 8.4
  
       - name: Create database
-        run: touch ./database/database.sqlite
+        run: touch ./backend/database/database.sqlite
   
       - name: Copy .env
         run: cp .env.test .env
