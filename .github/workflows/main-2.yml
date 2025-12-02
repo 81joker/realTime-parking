@@ -61,11 +61,10 @@ jobs:
         working-directory: ./frontend
         run: npm run lint
       
-      - name: Verify formatting
+      - name: Verfiy formatting
         working-directory: ./frontend
         run: npm run format:check
-
-
+        
       # Add tests here if you have them
       # - name: Test frontend
       #   working-directory: ./frontend
@@ -85,11 +84,10 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-              set -e
-              echo "Current directory: $(pwd)"
-              echo "Listing files:"
-              ls -la
-              cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
-              echo "Changed to directory: $(pwd)"
-              bash ./deploy.sh
-              echo "Deployed successfully"
+            set -e
+
+            cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
+            echo "Changed to directory: $(pwd)"
+            echo "Listing files in target directory:"
+            ls -la
+            bash ./deploy.sh
