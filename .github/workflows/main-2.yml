@@ -64,7 +64,6 @@ jobs:
       - name: Verfiy formatting
         working-directory: ./frontend
         run: npm run format:check
-        
       # Add tests here if you have them
       # - name: Test frontend
       #   working-directory: ./frontend
@@ -87,9 +86,5 @@ jobs:
             set -e
 
             cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
-            echo "Changed to directory: $(pwd)"
-            echo "Listing files in target directory:"
-            ls -la
-            chmod +x ./deploy.sh || true
-            echo "Running deploy.sh"
-            ./deploy.sh
+            bash backend/deploy.sh
+            echo "Deployed successfully"
