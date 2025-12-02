@@ -8,6 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # This is still for the Laravel app
     defaults:
       run:
         working-directory: ./backend
@@ -16,6 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # --- Backend (Laravel) ---
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -39,6 +41,37 @@ jobs:
       - name: Test PHPUnit
         run: ./vendor/bin/phpunit
 
+      # --- Frontend (React / Vite) ---
+      # defaults.run is ./backend, so we override working-directory per step
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: ./frontend
+        run: npm run lint
+      
+      - name: Verfiy formatting
+        working-directory: ./frontend
+        run: npm run format:check
+      # Add tests here if you have them
+      # - name: Test frontend
+      #   working-directory: ./frontend
+      #   run: npm test
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      # --- Deploy ---
       - name: Deploy using ssh
         uses: appleboy/ssh-action@v1.1.0
         with:
@@ -48,7 +81,8 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-              set -e
+            set -e
 
-              cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
-              bash deploy.sh
+            cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
+            bash deploy.sh
+            echo "Deployed successfully"
