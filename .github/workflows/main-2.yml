@@ -2,7 +2,9 @@ name: Build, test and deploy  Main 02
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - '*'
 
 jobs:
   build:
