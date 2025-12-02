@@ -1,7 +1,6 @@
 import React from "react";
 
 export default function PlaceListItem(places) {
-
   const rendersButtons = (status) => {
     switch (status) {
       case "available":
@@ -27,8 +26,7 @@ export default function PlaceListItem(places) {
       default:
         return null;
     }
-  }
-
+  };
 
   return (
     <>
