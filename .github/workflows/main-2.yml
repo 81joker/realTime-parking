@@ -90,4 +90,6 @@ jobs:
             echo "Changed to directory: $(pwd)"
             echo "Listing files in target directory:"
             ls -la
-            bash ./deploy.sh
+            chmod +x ./deploy.sh || true
+            echo "Running deploy.sh"
+            ./deploy.sh
