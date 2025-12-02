@@ -61,11 +61,11 @@ jobs:
         working-directory: ./frontend
         run: npm run lint
       
-      - name: Verfiy formatting
+      - name: Verify formatting
         working-directory: ./frontend
         run: npm run format:check
 
-        
+
       # Add tests here if you have them
       # - name: Test frontend
       #   working-directory: ./frontend
@@ -88,5 +88,6 @@ jobs:
             set -e
 
             cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
-            bash deploy.sh
-            echo "Deployed successfully"
+            cd realtime-parking
+            chmod +x ./deploy.sh || true
+            ./deploy.sh

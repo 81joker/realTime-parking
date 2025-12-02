@@ -1,6 +1,35 @@
 import React from "react";
 
 export default function PlaceListItem(places) {
+
+  const rendersButtons = (status) => {
+    switch (status) {
+      case "available":
+        return (
+          <>
+            <button className="btn btn-sm btn-dark">Reseve</button>
+            {/* <button className="btn btn-sm btn-primary">Park hier</button> */}
+          </>
+        );
+      case "reserved":
+        return (
+          <>
+            <button className="btn btn-sm btn-primary">Park hier</button>
+            <button className="btn btn-sm btn-warning">Cancel</button>
+          </>
+        );
+      case "occupied":
+        return (
+          <>
+            <button className="btn btn-sm btn-danger">End parking</button>
+          </>
+        );
+      default:
+        return null;
+    }
+  }
+
+
   return (
     <>
       {places?.places.map((place) => (
@@ -31,10 +60,11 @@ export default function PlaceListItem(places) {
               </div>
 
               <div className="d-flex justify-content-between mt-3">
-                <button className="btn btn-sm btn-dark">Reseve</button>
+                {rendersButtons(place.status)}
+                {/* <button className="btn btn-sm btn-dark">Reseve</button>
                 <button className="btn btn-sm btn-warning">Cancel</button>
                 <button className="btn btn-sm btn-primary">Park hier</button>
-                <button className="btn btn-sm btn-danger">End parking</button>
+                <button className="btn btn-sm btn-danger">End parking</button> */}
               </div>
             </div>
           </div>
