@@ -88,5 +88,6 @@ jobs:
             set -e
 
             cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
-            chmod +x ./deploy.sh || true
-            ./deploy.sh
+            ls -la
+            bash ./deploy.sh
+            echo "Deployed successfully"
