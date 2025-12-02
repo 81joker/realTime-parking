@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint \"src/**/*.{js,jsx}\"",
     "lint:fix": "eslint \"src/**/*.{js,jsx}\" --fix",
-    "format": "prettier \"src/**/*.{js,jsx,css,html,json,md}\" --write",
+    "format:check": "prettier \"src/**/*.{js,jsx,css,html,json,md}\" --write",
     "prepare": "npm run lint:fix && npm run format",
     "preview": "vite preview"
   },
