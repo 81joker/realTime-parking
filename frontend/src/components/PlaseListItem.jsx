@@ -1,13 +1,32 @@
 import React from "react";
+import axios from "axios";
+export default function PlaceListItem({ places, updatedPlaceInList }) {
 
-export default function PlaceListItem(places) {
-  const rendersButtons = (status) => {
-    switch (status) {
+  const resercvePlace = async (placeId) => {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/book/reservation`
+        , { place_id: placeId }
+      );
+      const updatedPlace = response.data.place;
+      updatedPlaceInList(updatedPlace);
+      console.log("Place reserved successfully:", response.data.message);
+
+    } catch (error) {
+      console.error("Error reserving place:", error);
+    }
+  }
+
+
+  const rendersButtons = (place) => {
+      if (!place) return null;
+    switch (place.status) {
       case "available":
         return (
           <>
-            <button className="btn btn-sm btn-dark">Reseve</button>
-            {/* <button className="btn btn-sm btn-primary">Park hier</button> */}
+            <button className="btn btn-sm btn-dark" 
+            onClick={() => resercvePlace(place.id)}>
+              Reserve
+              </button>
           </>
         );
       case "reserved":
@@ -30,13 +49,13 @@ export default function PlaceListItem(places) {
 
   return (
     <>
-      {places?.places.map((place) => (
+      {places?.map((place) => (
         <div key={place.id} className="col-md-4">
           <div className="card custom-card mb-4 shadow-sm">
             <div className="card-body">
               <h5 className="card-title">
                 {place.place_number}
-                <span className="badge bg-success float-end">
+                <span className={`badge ${place.status == 'available' ? 'bg-success' : place.status == 'reserved' ? 'bg-danger text-dark' : 'bg-danger'} float-end`}>
                   {place.status}
                 </span>
               </h5>
@@ -58,7 +77,7 @@ export default function PlaceListItem(places) {
               </div>
 
               <div className="d-flex justify-content-between mt-3">
-                {rendersButtons(place.status)}
+                {rendersButtons(place)}
                 {/* <button className="btn btn-sm btn-dark">Reseve</button>
                 <button className="btn btn-sm btn-warning">Cancel</button>
                 <button className="btn btn-sm btn-primary">Park hier</button>

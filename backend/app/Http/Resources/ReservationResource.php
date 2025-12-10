@@ -15,15 +15,15 @@ class ReservationResource extends JsonResource
     public function toArray(Request $request): array
     {
         return parent::toArray($request);
-        // return [
-        //     'id' => $this->id,
-        //     'user_id' => $this->user_id,
-        //     'place_id' => $this->place_id,
-        //     'start_time' => $this->start_time,
-        //     'end_time' => $this->end_time,
-        //     'status' => $this->status,
-        //     'amount' => $this->amount,
-        //     'paid' => $this->paid,
-        // ];
+        return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'place_id' => $this->place_id,
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'status' => $this->status,
+            'amount' => $this->amount,
+            'paid' => $this->paid,
+        ];
     }
 }
