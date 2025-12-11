@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Models\User;
-use App\Models\Place;
-use App\Models\Reservation;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlaceResource;
+use App\Models\Place;
+use App\Models\Reservation;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    public function store(Request $request) 
+    public function store(Request $request)
     {
         // User::create([
         //     'name' => 'Test User',
@@ -49,7 +48,7 @@ class ReservationController extends Controller
 
         // Find the place
         $place = Place::find($request->place_id);
-        if (!$place || $place->status !== 'available') {
+        if (! $place || $place->status !== 'available') {
             return response()->json([
                 'error' => 'Place not found.',
             ]);
@@ -70,10 +69,11 @@ class ReservationController extends Controller
             ]);
 
             $place->refresh();
+
             return response()->json([
-        'message' => 'Reservation created successfully.',
-        'place' => PlaceResource::make($place->load('sector', 'reservations')),
-    ]);
+                'message' => 'Reservation created successfully.',
+                'place' => PlaceResource::make($place->load('sector', 'reservations')),
+            ]);
         });
 
     }
