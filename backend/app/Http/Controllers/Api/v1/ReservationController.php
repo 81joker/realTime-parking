@@ -157,4 +157,47 @@ class ReservationController extends Controller
             'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
         ]);
     }
+    /**
+     * End parking for a reservation.
+     * @return JsonResponse
+     * @param Request $request
+     */
+    public function EndParking(Request $request, Reservation $reservation): JsonResponse
+    {
+
+        if ($reservation->user_id !== 1) {
+            return response()->json([
+                'error' => 'No Active reservation not found.',
+            ]);
+        } else {
+
+            DB::transaction(function () use ($reservation) {
+
+                // Update the place status
+                $reservation->update([
+                    'status' => 'finished',
+                    'end_time' => Carbon::now(),
+                ]);
+
+                $reservation->place->update([
+                    'status' => 'available',
+                ]);
+            });
+        }
+
+        $hours = ceil($reservation->start_time->diffInMinutes($reservation->end_time) / 60);
+        $place = $reservation->place;
+        $sector = $place->sector;
+        $pricePerHour = $sector->price;
+        $amount = $hours * $pricePerHour;
+        $reservation->update([
+                    'amount' => $amount,
+            ]);
+
+
+        return response()->json([
+            'message' => 'Parking ended successfully. Total amount: ' . $amount . ' USD',
+            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
+        ]);
+    }
 }

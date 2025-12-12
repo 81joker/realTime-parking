@@ -62,6 +62,25 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       toast.error("Something went wrong while cancelling the reservation.");
     }
   };
+  const EndParking = async (reservation) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/end/${reservation}/parking`,
+        {}
+      );
+      if (response.data.error) {
+        toast.error(response.data.error);
+      } else {
+        const updatedPlace = response.data.place;
+        updatedPlaceInList(updatedPlace);
+        toast.success(response.data.message);
+      }
+
+    } catch (error) {
+      console.error("Error reserving place:", error);
+      toast.error("Something went wrong while cancelling the reservation.");
+    }
+  };
 
   
 
@@ -69,6 +88,9 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
     const { status, reservations } = place;
     const reservation = reservations.find(
       (res) => res.user_id === 1 && res.status === "reserved"
+    );
+    const reservationParked = reservations.find(
+      (res) => res.user_id === 1 && res.status === "parked"
     );
 
     if (!place) return null;
@@ -103,7 +125,9 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "occupied":
         return (
           <>
-            <button className="btn btn-sm btn-danger">End parking</button>
+            <button className="btn btn-sm btn-danger" onClick={() => EndParking(reservationParked.id)}>
+              End parking
+              </button>
           </>
         );
       default:
