@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Sector extends Model
 {
     protected $fillable = [
+        'id',
         'name',
         'description',
         'price',
