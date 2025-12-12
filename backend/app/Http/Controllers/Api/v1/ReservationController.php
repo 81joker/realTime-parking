@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    public function store(Request $request)
     /**
      * Book a reservation for a place.
      * @return JsonResponse
