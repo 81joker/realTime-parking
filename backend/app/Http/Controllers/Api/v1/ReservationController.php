@@ -7,18 +7,20 @@ use App\Http\Resources\PlaceResource;
 use App\Models\Place;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
     public function store(Request $request)
+    /**
+     * Book a reservation for a place.
+     * @return JsonResponse
+     * @param Request $request
+     */
+    public function store(Request $request): JsonResponse
     {
-        // User::create([
-        //     'name' => 'Test User',
-        //     'email' => 'testuser@example.com',
-        //     'password' => bcrypt('password'),
-        // ]);
         // check if user already has reserved place
         $reservationExists = Reservation::where([
             'user_id' => 1,
@@ -54,11 +56,10 @@ class ReservationController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($request, $place) {
+        return DB::transaction(function () use ($request, $place) {
             // Create the reservation
             Reservation::create([
                 'user_id' => 1,
-                // 'user_id' => auth()->id(),
                 'place_id' => $request->place_id,
                 'status' => 'reserved',
             ]);
@@ -72,9 +73,75 @@ class ReservationController extends Controller
 
             return response()->json([
                 'message' => 'Reservation created successfully.',
-                'place' => PlaceResource::make($place->load('sector', 'reservations')),
+                'place' => PlaceResource::make($place->load(['sector', 'reservations'])),
             ]);
         });
 
     }
+
+    /**
+     * Cancel a reservation.
+     */
+    public function cancel(Request $request, Reservation $reservation): JsonResponse
+    {
+
+        if ($reservation->user_id !== 1) {
+            return response()->json([
+                'error' => 'No Active reservation not found.',
+            ]);
+        
+        } else {
+
+            // $place = Place::find($reservation->place_id);
+            // DB::transaction(function () use ($reservation, $place) {
+
+            DB::transaction(function () use ($reservation) {
+                // Delete the reservation
+                // $reservation->delete();
+
+                // Update the place status
+                $reservation->update([
+                    'status' => 'cancelled',
+                ]);
+
+                // $place->update([
+                //     'status' => 'available',
+                // ]);
+                $reservation->place->update([
+                    'status' => 'available',
+                ]);
+            });
+        }
+
+        return response()->json([
+            'message' => 'Reservation cancelled successfully.',
+            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
+        ]);
+    }
+    // public function cancel($id) : JsonResponse
+    // {
+    //     $reservation = Reservation::find($id);
+
+    //     if (!$reservation) {
+    //         return response()->json([
+    //             'error' => 'Reservation not found.',
+    //         ], 404);
+    //     }
+
+    //     $place = Place::find($reservation->place_id);
+
+    //     DB::transaction(function () use ($reservation, $place) {
+    //         // Delete the reservation
+    //         $reservation->delete();
+
+    //         // Update the place status
+    //         $place->update([
+    //             'status' => 'available',
+    //         ]);
+    //     });
+
+    //     return response()->json([
+    //         'message' => 'Reservation cancelled successfully.',
+    //     ]);
+    // }
 }

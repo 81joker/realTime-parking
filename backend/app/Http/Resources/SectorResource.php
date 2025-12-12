@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property \App\Models\Sector $resource
+ */
 class SectorResource extends JsonResource
 {
     /**
@@ -14,11 +17,12 @@ class SectorResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'description' => $this->description,
-            'price' => $this->price,
-        ];
+        return parent::toArray($request);
+        // return [
+        //     'id' => $this->id,
+        //     'name' => $this->name,
+        //     'description' => $this->description,
+        //     'price' => $this->price,
+        // ];
     }
 }
