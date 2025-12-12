@@ -71,69 +71,52 @@ class ReservationController extends Controller
 
             $place->refresh();
 
-            return response()->json([
-                'message' => 'Reservation created successfully.',
-                'place' => PlaceResource::make($place->load(['sector', 'reservations'])),
-            ]);
+            $message = 'Reservation created successfully.';
+            return $this->placeResource($place, $message);
         });
     }
-
 
     /**
      * Cancel a reservation.
      * @return JsonResponse
      * @param Request $request
+     * @param  User  $user
      */
     public function cancel(Request $request, Reservation $reservation): JsonResponse
     {
 
-        if ($reservation->user_id !== 1) {
-            return response()->json([
-                'error' => 'No Active reservation not found.',
-            ]);
+        if ($response = $this->ensureUserOwnsReservation($request, $reservation)) {
+            return $response;
         } else {
 
-            // $place = Place::find($reservation->place_id);
-            // DB::transaction(function () use ($reservation, $place) {
-
             DB::transaction(function () use ($reservation) {
-                // Delete the reservation
-                // $reservation->delete();
 
                 // Update the place status
                 $reservation->update([
                     'status' => 'cancelled',
                 ]);
 
-                // $place->update([
-                //     'status' => 'available',
-                // ]);
                 $reservation->place->update([
                     'status' => 'available',
                 ]);
             });
         }
 
-        return response()->json([
-            'message' => 'Reservation cancelled successfully.',
-            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
-        ]);
+        $message = 'Reservation cancelled successfully.';
+        return $this->placeResource($reservation->place, $message);
     }
-    
 
-    
     /**
      * Start parking for a reservation.
      * @return JsonResponse
      * @param Request $request
+     * @param  Reservation  $reservation
      */
     public function startParking(Request $request, Reservation $reservation): JsonResponse
     {
 
-        if ($reservation->user_id !== 1) {
-            return response()->json([
-                'error' => 'No Active reservation not found.',
-            ]);
+        if ($response = $this->ensureUserOwnsReservation($request, $reservation)) {
+            return $response;
         } else {
 
             DB::transaction(function () use ($reservation) {
@@ -152,23 +135,21 @@ class ReservationController extends Controller
             });
         }
 
-        return response()->json([
-            'message' => 'Parking started successfully.',
-            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
-        ]);
+        $message = 'Parking started successfully.';
+        return $this->placeResource($reservation->place, $message);
     }
+
     /**
      * End parking for a reservation.
      * @return JsonResponse
      * @param Request $request
+     * @param  User  $user
      */
     public function EndParking(Request $request, Reservation $reservation): JsonResponse
     {
 
-        if ($reservation->user_id !== 1) {
-            return response()->json([
-                'error' => 'No Active reservation not found.',
-            ]);
+        if ($response = $this->ensureUserOwnsReservation($request, $reservation)) {
+            return $response;
         } else {
 
             DB::transaction(function () use ($reservation) {
@@ -191,13 +172,43 @@ class ReservationController extends Controller
         $pricePerHour = $sector->price;
         $amount = $hours * $pricePerHour;
         $reservation->update([
-                    'amount' => $amount,
+            'amount' => $amount,
+        ]);
+
+        $message = 'Parking ended successfully. Total amount: ' . $amount . ' USD';
+        return $this->placeResource($reservation->place, $message);
+    }
+
+    /**
+     * Ensure the authenticated user owns the reservation.
+     * @return JsonResponse
+     * @param Request $request
+     * @param  User  $user
+     */
+    private function ensureUserOwnsReservation(Request $request, Reservation $reservation): ?JsonResponse
+    {
+        if ($reservation->user_id !== 1) {
+            // if ($reservation->user_id !== $user->id) {
+            return response()->json([
+                'error' => 'No Active reservation not found.',
             ]);
+        }
+
+        return null;
+    }
 
 
+    /**
+     * Prepare the place resource response.
+     * @return JsonResponse
+     * @param Place $place
+     * @param string $message
+     */
+    private function placeResource(Place $place, string $message): JsonResponse
+    {
         return response()->json([
-            'message' => 'Parking ended successfully. Total amount: ' . $amount . ' USD',
-            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
+            'message' => $message,
+            'place' => PlaceResource::make($place->load('sector', 'reservations')),
         ]);
     }
 }
