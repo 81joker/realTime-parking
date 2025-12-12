@@ -3,12 +3,21 @@ import axios from "axios";
 import PlaceListItem from "../components/PlaseListItem.jsx";
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
+
+  const updatePlaceInList = (updatedPlace) => {
+    setPlaces((prevPlaces) =>
+      prevPlaces.map((place) =>
+        place.id === updatedPlace.id ? updatedPlace : place
+      )
+    );
+  }
+
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
         const response = await axios.get("http://localhost:8000/api/places");
         setPlaces(response.data.data);
-        console.log("Fetched places:", response.data);
+        // console.log("Fetched places:", response.data);
       } catch (error) {
         console.error("Error fetching places:", error);
       }
@@ -20,7 +29,9 @@ export default function PlaceList() {
     <div>
       {/* <pre>{JSON.stringify(places, null, 2)}</pre> */}
       <div className="row my-4">
-        <PlaceListItem places={places} />
+        <PlaceListItem 
+        updatedPlaceInList={updatePlaceInList}
+        places={places} />
       </div>
     </div>
   );
