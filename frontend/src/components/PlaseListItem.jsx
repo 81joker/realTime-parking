@@ -30,10 +30,6 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
         `http://localhost:8000/api/cancel/${reservation}/reservation`,
         {}
       );
-      // const updatedPlace = response.data.place;
-      // updatedPlaceInList(updatedPlace);
-      // console.log(response.data.message);
-
       if (response.data.error) {
         toast.error(response.data.error);
       } else {
@@ -47,6 +43,27 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       toast.error("Something went wrong while cancelling the reservation.");
     }
   };
+  const startParking = async (reservation) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/start/${reservation}/parking`,
+        {}
+      );
+      if (response.data.error) {
+        toast.error(response.data.error);
+      } else {
+        const updatedPlace = response.data.place;
+        updatedPlaceInList(updatedPlace);
+        toast.success(response.data.message);
+      }
+
+    } catch (error) {
+      console.error("Error reserving place:", error);
+      toast.error("Something went wrong while cancelling the reservation.");
+    }
+  };
+
+  
 
   const rendersButtons = (place) => {
     const { status, reservations } = place;
@@ -70,7 +87,11 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "reserved":
         return (
           <>
-            <button className="btn btn-sm btn-primary">Park hier</button>
+            <button className="btn btn-sm btn-primary"
+              onClick={() => startParking(reservation.id)}>
+              Park hier
+              </button>
+
             <button
               className="btn btn-sm btn-warning"
               onClick={() => cancelReservation(reservation.id)}
@@ -121,16 +142,8 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
                 </div>
               </div>
 
-              {/* <pre>
-{JSON.stringify(place.reservations, null, 2)}
-</pre> */}
-
               <div className="d-flex justify-content-between mt-3">
                 {rendersButtons(place)}
-                {/* <button className="btn btn-sm btn-dark">Reseve</button>
-                <button className="btn btn-sm btn-warning">Cancel</button>
-                <button className="btn btn-sm btn-primary">Park hier</button>
-                <button className="btn btn-sm btn-danger">End parking</button> */}
               </div>
             </div>
           </div>

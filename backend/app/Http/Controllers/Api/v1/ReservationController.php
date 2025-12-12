@@ -7,6 +7,7 @@ use App\Http\Resources\PlaceResource;
 use App\Models\Place;
 use App\Models\Reservation;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,11 +76,13 @@ class ReservationController extends Controller
                 'place' => PlaceResource::make($place->load(['sector', 'reservations'])),
             ]);
         });
-
     }
+
 
     /**
      * Cancel a reservation.
+     * @return JsonResponse
+     * @param Request $request
      */
     public function cancel(Request $request, Reservation $reservation): JsonResponse
     {
@@ -88,7 +91,6 @@ class ReservationController extends Controller
             return response()->json([
                 'error' => 'No Active reservation not found.',
             ]);
-        
         } else {
 
             // $place = Place::find($reservation->place_id);
@@ -117,30 +119,42 @@ class ReservationController extends Controller
             'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
         ]);
     }
-    // public function cancel($id) : JsonResponse
-    // {
-    //     $reservation = Reservation::find($id);
+    
 
-    //     if (!$reservation) {
-    //         return response()->json([
-    //             'error' => 'Reservation not found.',
-    //         ], 404);
-    //     }
+    
+    /**
+     * Start parking for a reservation.
+     * @return JsonResponse
+     * @param Request $request
+     */
+    public function startParking(Request $request, Reservation $reservation): JsonResponse
+    {
 
-    //     $place = Place::find($reservation->place_id);
+        if ($reservation->user_id !== 1) {
+            return response()->json([
+                'error' => 'No Active reservation not found.',
+            ]);
+        } else {
 
-    //     DB::transaction(function () use ($reservation, $place) {
-    //         // Delete the reservation
-    //         $reservation->delete();
+            DB::transaction(function () use ($reservation) {
+                // Delete the reservation
+                // $reservation->delete();
 
-    //         // Update the place status
-    //         $place->update([
-    //             'status' => 'available',
-    //         ]);
-    //     });
+                // Update the place status
+                $reservation->update([
+                    'status' => 'parked',
+                    'start_time' => Carbon::now(),
+                ]);
 
-    //     return response()->json([
-    //         'message' => 'Reservation cancelled successfully.',
-    //     ]);
-    // }
+                $reservation->place->update([
+                    'status' => 'occupied',
+                ]);
+            });
+        }
+
+        return response()->json([
+            'message' => 'Parking started successfully.',
+            'place' => PlaceResource::make($reservation->place->load('sector', 'reservations')),
+        ]);
+    }
 }
