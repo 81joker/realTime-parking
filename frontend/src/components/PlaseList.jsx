@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PlaceListItem from "../components/PlaseListItem.jsx";
-import {  getPlacesApi} from "../config/api";
+import {  fetchPlacesApi } from "../config/api";
+import { toast } from "react-toastify";
 
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
@@ -16,9 +17,11 @@ export default function PlaceList() {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await getPlacesApi();
-        setPlaces(response.data.data);
+        const data = await fetchPlacesApi();
+        setPlaces(data.data);
+        // setPlaces(response.data.data);
       } catch (error) {
+        toast.error("Failed to fetch places.");
         console.error("Error fetching places:", error);
       }
     };
