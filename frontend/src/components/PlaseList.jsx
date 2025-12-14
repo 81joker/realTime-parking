@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import PlaceListItem from "../components/PlaseListItem.jsx";
-import { handlePlaceRequest  , getPlacesApi} from "../config/api";
+import {  getPlacesApi} from "../config/api";
 
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
