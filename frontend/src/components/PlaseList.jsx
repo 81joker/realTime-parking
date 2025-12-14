@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import PlaceListItem from "../components/PlaseListItem.jsx";
+import {  getPlacesApi} from "../config/api";
+
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
 
@@ -15,15 +16,15 @@ export default function PlaceList() {
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/places");
+        const response = await getPlacesApi();
         setPlaces(response.data.data);
-        // console.log("Fetched places:", response.data);
       } catch (error) {
         console.error("Error fetching places:", error);
       }
     };
     fetchPlaces();
   }, []);
+
 
   return (
     <div>

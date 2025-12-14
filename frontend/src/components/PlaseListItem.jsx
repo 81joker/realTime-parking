@@ -1,58 +1,23 @@
 import React from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { handlePlaceRequest  , reservePlaceApi , startParkingApi , endParkingApi ,cancelReservationApi} from "../config/api";
+
+
+
+
 export default function PlaceListItem({ places, updatedPlaceInList }) {
-  const resercvePlace = async (placeId) => {
-    try {
-      const response = await axios.post(
-        `http://localhost:8000/api/book/reservation`,
-        { place_id: placeId }
-      );
 
-      if (response.data.error) {
-        toast.error(response.data.error);
-      } else {
-        var updatedPlace = response.data.place;
-        updatedPlaceInList(updatedPlace);
-        toast.success(response.data.message);
-      }
-
-      console.log("Place reserved successfully:", response.data.message);
-    } catch (error) {
-      console.error("Error reserving place:", error);
-      toast.error("Something went wrong while reserving the place.");
-    }
-  };
-
-  const cancelReservation = async (reservation) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:8000/api/cancel/${reservation}/reservation`,
-        {}
-      );
-      // const updatedPlace = response.data.place;
-      // updatedPlaceInList(updatedPlace);
-      // console.log(response.data.message);
-
-      if (response.data.error) {
-        toast.error(response.data.error);
-      } else {
-        const updatedPlace = response.data.place;
-        updatedPlaceInList(updatedPlace);
-        toast.success(response.data.message);
-      }
-
-    } catch (error) {
-      console.error("Error reserving place:", error);
-      toast.error("Something went wrong while cancelling the reservation.");
-    }
-  };
-
+  const findReservationByStatus = ( status ,reservations) => {
+      const reservation = reservations.find((res) => res.user_id === 1 && res.status === status);
+      return reservation;
+  }
   const rendersButtons = (place) => {
     const { status, reservations } = place;
-    const reservation = reservations.find(
-      (res) => res.user_id === 1 && res.status === "reserved"
-    );
+    // const reservation = reservations.find(
+    //   (res) => res.user_id === 1 && res.status === "reserved"
+    // );
+    // const reservationParked = reservations.find(
+    //   (res) => res.user_id === 1 && res.status === "parked"
+    // );
 
     if (!place) return null;
     switch (status) {
@@ -61,7 +26,7 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
           <>
             <button
               className="btn btn-sm btn-dark"
-              onClick={() => resercvePlace(place.id)}
+              onClick={() => handlePlaceRequest(() => reservePlaceApi(place.id), updatedPlaceInList)}
             >
               Reserve
             </button>
@@ -70,10 +35,14 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "reserved":
         return (
           <>
-            <button className="btn btn-sm btn-primary">Park hier</button>
+            <button className="btn btn-sm btn-primary"
+              onClick={() => handlePlaceRequest(() => startParkingApi(findReservationByStatus('reserved' ,reservations).id), updatedPlaceInList)}>
+              Park hier
+              </button>
+
             <button
               className="btn btn-sm btn-warning"
-              onClick={() => cancelReservation(reservation.id)}
+              onClick={() => handlePlaceRequest(() => cancelReservationApi(findReservationByStatus('reserved' ,reservations).id), updatedPlaceInList)}
             >
               Cancel
             </button>
@@ -82,7 +51,9 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "occupied":
         return (
           <>
-            <button className="btn btn-sm btn-danger">End parking</button>
+            <button className="btn btn-sm btn-danger" onClick={() => handlePlaceRequest(() => endParkingApi(findReservationByStatus('parked' ,reservations).id), updatedPlaceInList)}>
+              End parking
+              </button>
           </>
         );
       default:
@@ -121,16 +92,8 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
                 </div>
               </div>
 
-              {/* <pre>
-{JSON.stringify(place.reservations, null, 2)}
-</pre> */}
-
               <div className="d-flex justify-content-between mt-3">
                 {rendersButtons(place)}
-                {/* <button className="btn btn-sm btn-dark">Reseve</button>
-                <button className="btn btn-sm btn-warning">Cancel</button>
-                <button className="btn btn-sm btn-primary">Park hier</button>
-                <button className="btn btn-sm btn-danger">End parking</button> */}
               </div>
             </div>
           </div>
