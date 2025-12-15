@@ -17,7 +17,7 @@ Route::put('/start/{reservation}/parking', [ReservationController::class, 'start
 Route::put('/end/{reservation}/parking', [ReservationController::class, 'endParking']);
 
 // User authentication routes
-Route::post('/register', [UserController::class, 'store']);
-Route::post('/login', [UserController::class, 'auth']);
-Route::post('/logout', [UserController::class, 'logout']);
-// Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/user/register', [UserController::class, 'store']);
+Route::post('/user/login', [UserController::class, 'auth']);
+Route::post('/user/logout', [UserController::class, 'logout']);
+// Route::post('/user/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
