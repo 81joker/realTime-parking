@@ -39,6 +39,13 @@ export const registerUserApi = async (userData) => {
   return res.data;
 };
 
+// Login user
+export const loginUserApi = async (userData) => {
+  const res = await axios.post(`${API_BASE_URL}/user/login`, userData);
+  return res.data;
+};
+
+
 // API calls
 export const reservePlaceApi = (placeId) =>
   axios.post(`${API_BASE_URL}/book/reservation`, { place_id: placeId });
