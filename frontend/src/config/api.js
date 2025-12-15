@@ -33,6 +33,16 @@ export const fetchPlacesApi = async () => {
   }
 };
 
+// Register new user
+export const registerUserApi = async (userData) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/user/register`, userData);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // API calls
 export const reservePlaceApi = (placeId) =>
   axios.post(`${API_BASE_URL}/book/reservation`, { place_id: placeId });
@@ -47,5 +57,3 @@ export const cancelReservationApi = (reservation) =>
   axios.put(`${API_BASE_URL}/cancel/${reservation}/reservation`, {});
 
 export const getPlacesApi = () => axios.get(`${API_BASE_URL}/places`);
-
-
