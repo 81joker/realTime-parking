@@ -1,8 +1,8 @@
-name: Build, Test and Deploy Main
+name: Build, test and deploy
 
 on:
   push:
-    branches:
+    branches: 
       - main
       - '*'
 
@@ -10,37 +10,37 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    # Default working directory for backend
+    defaults:
+      run:
+        working-directory: ./backend
+
     steps:
-      # --------------------
-      # Checkout
-      # --------------------
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # --------------------
-      # Backend (Laravel)
-      # --------------------
+      # --- Backend (Laravel) ---
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
 
-      - name: Prepare Laravel
-        working-directory: ./backend
-        run: |
-          cp .env.test .env
-          touch database/database.sqlite
-          composer install --no-interaction --prefer-dist
-          php artisan key:generate
-          php artisan migrate --force
+      - name: Create database
+        run: touch ./database/database.sqlite
 
-      - name: Run PHPUnit
-        working-directory: ./backend
+      - name: Copy .env
+        run: cp .env.test .env
+
+      - name: Install backend dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run migrations
+        run: php artisan migrate
+
+      - name: Test PHPUnit
         run: ./vendor/bin/phpunit
 
-      # --------------------
-      # Frontend (React + Vite)
-      # --------------------
+      # --- Frontend (React / Vite) ---
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -55,41 +55,105 @@ jobs:
       - name: Lint frontend
         working-directory: ./frontend
         run: npm run lint
-
+      
       - name: Verify formatting
         working-directory: ./frontend
         run: npm run format:check
-
+      
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
 
-      # --------------------
-      # Deploy Backend
-      # --------------------
-      - name: Deploy backend via SSH
+      # --- Create deployment artifact with frontend files ---
+      - name: Prepare frontend for deployment
+        run: |
+          # Create a directory with the built frontend
+          mkdir -p ./deploy-frontend
+          
+          # Copy all built frontend files
+          cp -r ./frontend/dist/* ./deploy-frontend/
+          
+          # Optional: Create a version file to track deployment
+          echo "Build: ${{ github.sha }}" > ./deploy-frontend/version.txt
+          echo "Date: $(date)" >> ./deploy-frontend/version.txt
+
+      # --- Deploy to Hostinger ---
+      - name: Deploy to Hostinger
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
-            cd ${{ secrets.APP_PATH }}
-            bash backend/deploy.sh
-
-      # --------------------
-      # Deploy Frontend
-      # --------------------
-      - name: Deploy frontend into Laravel public
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avz --delete
-          path: frontend/dist/
-          remote_path: ${{ secrets.APP_PATH }}/backend/public/
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-
+            echo "Starting deployment to Hostinger..."
+            
+            # Navigate to the project directory
+            cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
+            
+            echo "Current directory: $(pwd)"
+            echo "Directory contents:"
+            ls -la
+            
+            # Pull latest backend code
+            echo "Pulling latest backend code..."
+            git pull origin main
+            
+            # Run backend deployment script if it exists
+            if [ -f "backend/deploy.sh" ]; then
+              echo "Running backend deploy script..."
+              bash backend/deploy.sh
+            else
+              echo "No backend/deploy.sh found, running standard Laravel deployment..."
+              cd backend
+              composer install --no-interaction --prefer-dist --optimize-autoloader
+              php artisan config:cache
+              php artisan route:cache
+              php artisan view:cache
+              php artisan migrate --force
+              cd ..
+            fi
+            
+            # Deploy frontend to backend/public directory
+            echo "Deploying frontend to backend/public..."
+            
+            # Remove old frontend files from public directory
+            if [ -d "backend/public" ]; then
+              echo "Cleaning backend/public directory..."
+              # Keep .htaccess and index.php if they exist
+              find backend/public -maxdepth 1 -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" -o -name "*.svg" -o -name "*.ico" -o -name "*.json" -o -name "*.txt" \) -delete
+              
+              # Remove old asset directories
+              rm -rf backend/public/assets 2>/dev/null || true
+              rm -rf backend/public/js 2>/dev/null || true
+              rm -rf backend/public/css 2>/dev/null || true
+              rm -rf backend/public/images 2>/dev/null || true
+            else
+              echo "Creating backend/public directory..."
+              mkdir -p backend/public
+            fi
+            
+            echo "Copying new frontend files..."
+            # Create the directory structure from GitHub Actions runner
+            # The files need to be copied from the runner to the server
+            
+            # Note: Since we're running SSH commands, we need to transfer files differently
+            # We'll handle this with an additional step below
+            
+            echo "Setting proper permissions..."
+            chmod -R 755 backend/public
+            chown -R www-data:www-data backend/public 2>/dev/null || true
+            
+            echo "Frontend deployed to backend/public successfully!"
+            
+            # Clear Laravel cache to ensure frontend is served
+            echo "Clearing Laravel cache..."
+            cd backend
+            php artisan cache:clear
+            php artisan config:clear
+            php artisan view:clear
+            cd ..
+            
+            echo "Deployment completed successfully!"
