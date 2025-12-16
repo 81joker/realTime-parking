@@ -89,3 +89,21 @@ jobs:
             cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
             bash backend/deploy.sh
             echo "Deployed successfully"
+
+          # --------------------
+          # Deploy Frontend ONLY
+          # --------------------
+      - name: Deploy Frontend using ssh
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            # Note: APP_PATH is __realtime-parking
+              cd ${{ secrets.APP_PATH }}/backend/public/ || { echo "Path not found: ${{ secrets.APP_PATH }}/backend/public/"; exit 1; }
+              bash realtime-deploy.sh
+              echo "Realtime Frontend Deployed successfully"
