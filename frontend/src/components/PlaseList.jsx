@@ -33,6 +33,7 @@ export default function PlaceList() {
     <div>
       {/* <pre>{JSON.stringify(places, null, 2)}</pre> */}
       <div className="row my-4">
+        <h1>XXXXXXXXXXXXXXXXXXXXXXXXXXXXX</h1>
         <PlaceListItem 
         updatedPlaceInList={updatePlaceInList}
         places={places} />
