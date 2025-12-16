@@ -1,52 +1,45 @@
-name: Build, test and deploy  Main 02
+name: Build, Test and Deploy Main
 
 on:
   push:
-    branches: 
+    branches:
       - main
-      - '*'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
-    # This is still for the Laravel app
-    defaults:
-      run:
-        working-directory: ./backend
-
     steps:
-      - name: Checkout
+      # --------------------
+      # Checkout
+      # --------------------
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- Backend (Laravel) ---
+      # --------------------
+      # Backend (Laravel)
+      # --------------------
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
 
-      - name: Create database
-        run: touch ./database/database.sqlite
+      - name: Prepare Laravel
+        working-directory: ./backend
+        run: |
+          cp .env.test .env
+          touch database/database.sqlite
+          composer install --no-interaction --prefer-dist
+          php artisan key:generate
+          php artisan migrate --force
 
-      - name: Copy .env
-        run: cp .env.test .env
-
-      - name: Install app (runner)
-        run: composer install --no-interaction --prefer-dist
-
-      - name: Run migrations (runner)
-        run: php artisan migrate
-
-     # remove the phpstan test for just now
-      # - name: Test PHPStan
-      #   run: ./vendor/bin/phpstan analyse
-
-      - name: Test PHPUnit
+      - name: Run PHPUnit
+        working-directory: ./backend
         run: ./vendor/bin/phpunit
 
-      # --- Frontend (React / Vite) ---
-      # defaults.run is ./backend, so we override working-directory per step
-
+      # --------------------
+      # Frontend (React + Vite)
+      # --------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -61,31 +54,42 @@ jobs:
       - name: Lint frontend
         working-directory: ./frontend
         run: npm run lint
-      
-      - name: Verfiy formatting
+
+      - name: Verify formatting
         working-directory: ./frontend
         run: npm run format:check
-      # Add tests here if you have them
-      # - name: Test frontend
-      #   working-directory: ./frontend
-      #   run: npm test
-      
+
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
 
-      # --- Deploy ---
-      - name: Deploy using ssh
+      # --------------------
+      # Deploy Backend
+      # --------------------
+      - name: Deploy backend via SSH
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
-
-            cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
+            cd ${{ secrets.APP_PATH }}
             bash backend/deploy.sh
-            echo "Deployed successfully"
+
+      # --------------------
+      # Deploy Frontend
+      # --------------------
+      - name: Deploy frontend into Laravel public
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete
+          path: frontend/dist/
+          # remote_path: ${{ secrets.FRONTEND_PATH }}
+          remote_path: ${{ secrets.APP_PATH }}/backend/public/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+
