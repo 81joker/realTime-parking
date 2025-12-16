@@ -8,7 +8,7 @@ export default defineConfig({
   // Set the base path for the application deployment environment @nehad
   base: '/',       
   build: {
-    outDir: 'dist',
+    outDir: 'build',
     emptyOutDir: true
   }
 })
