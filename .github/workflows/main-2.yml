@@ -87,7 +87,6 @@ jobs:
         with:
           switches: -avz --delete
           path: frontend/dist/
-          # remote_path: ${{ secrets.FRONTEND_PATH }}
           remote_path: ${{ secrets.APP_PATH }}/backend/public/
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USER }}
