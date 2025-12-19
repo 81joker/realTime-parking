@@ -4,7 +4,15 @@ import axios from "axios";
 // const API_BASE_URL = "http://localhost:8000/api";
 // const PRODUCTION_API_BASE_URL = "https://realtimepark.nehaddev.com/api";
 
-
+const getConfig = (token) => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+  };
+  return config;
+}
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:8000/api"
@@ -53,6 +61,12 @@ export const loginUserApi = async (userData) => {
   return res.data;
 };
 
+
+// Logout user
+export const logoutUserApi = async (token) => {
+  const res = await axios.post(`${API_BASE_URL}/user/logout`, {}, getConfig(token));
+  return res.data;
+}
 
 // API calls
 export const reservePlaceApi = (placeId) =>
