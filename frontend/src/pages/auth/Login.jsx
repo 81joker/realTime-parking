@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import useValidation from "../../components/custom/useValdation";
 import Spinner from "../../components/layouts/Spinner";
 import { loginUserApi } from "../../config/api";
+import {setCredentials} from '../../redux/slices/userSlice';
+
 export default function Login() {
   const [user, setUser] = useState({
     email: '',
     password: ''
-  })
-
+  }) 
+  const dispatch = useDispatch();
   const [validationErrors, setValidationErrors] = useState(null)
   const [loading, setLoading] = useState(false)
   let navigate = useNavigate();
@@ -19,8 +22,14 @@ export default function Login() {
     setValidationErrors(null)
     setLoading(true)
     try {
-        const res =  await loginUserApi(user)
-        toast.success(res.message)
+        const data =  await loginUserApi(user)
+        dispatch(setCredentials(  {
+          user: data.user,
+          token: data.access_token
+        }))
+        toast.success(data.message)
+
+
       navigate('/')
     } catch (error) {
 if (error?.response?.status === 422) {
