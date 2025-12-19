@@ -24,23 +24,35 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
+      - name: Cashe Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Create database
         run: touch ./database/database.sqlite
 
       - name: Copy .env
         run: cp .env.test .env
+      - name: Generate app key
+        run: php artisan key:generate
 
       - name: Install app (runner)
         run: composer install --no-interaction --prefer-dist
 
       - name: Run migrations (runner)
-        run: php artisan migrate
+        run: php artisan migrate --force
 
      # remove the phpstan test for just now
       # - name: Test PHPStan
       #   run: ./vendor/bin/phpstan analyse
 
+      - name: Optimize Laravel app
+        run: |
+          php artisan config:clear
+          php artisan config:cache
       - name: Test PHPUnit
         run: ./vendor/bin/phpunit
 
