@@ -36,8 +36,8 @@ jobs:
 
       - name: Copy .env
         run: cp .env.test .env
-      - name: Generate app key
-        run: php artisan key:generate
+      # - name: Generate app key
+      #   run: php artisan key:generate
 
       - name: Install app (runner)
         run: composer install --no-interaction --prefer-dist
