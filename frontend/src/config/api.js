@@ -16,7 +16,7 @@ const getConfig = (token) => {
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:8000/api"
-    : "https://realtimepark.nehaddev.com/api/";
+    : "https://realtimepark.nehaddev.com/api";
 
 
 export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {

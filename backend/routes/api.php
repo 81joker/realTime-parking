@@ -26,5 +26,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // User authentication routes
 Route::post('/user/register', [UserController::class, 'store']);
-Route::post('/user/login', [UserController::class, 'auth']);
+Route::post('user/login', [UserController::class, 'auth']);
 // Route::post('/user/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
