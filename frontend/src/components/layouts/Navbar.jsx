@@ -32,7 +32,6 @@ export default function Navbar() {
       <li className="nav-item">
         <NavLink  className="nav-link">
           <i className="bi bi-person"></i> {user?.name || "Guest"}
-          {/* <i className="bi bi-person"></i> {user?.name || "Guest"} */}
         </NavLink>
       </li>
       

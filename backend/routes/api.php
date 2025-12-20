@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\v1\PlaceController;
-use App\Http\Controllers\Api\v1\ReservationController;
-use App\Http\Controllers\Api\v1\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\v1\UserController;
+use App\Http\Controllers\Api\v1\PlaceController;
+use App\Http\Controllers\Api\v1\ReservationController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
