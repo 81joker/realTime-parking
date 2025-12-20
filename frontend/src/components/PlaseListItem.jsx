@@ -1,10 +1,13 @@
 import React from "react";
 import { handlePlaceRequest  , reservePlaceApi , startParkingApi , endParkingApi ,cancelReservationApi} from "../config/api";
+import { useSelector } from "react-redux";
 
 
 
 
 export default function PlaceListItem({ places, updatedPlaceInList }) {
+
+  const { token } = useSelector((state) => state.user);
 
   const findReservationByStatus = ( status ,reservations) => {
       const reservation = reservations.find((res) => res.user_id === 1 && res.status === status);
@@ -26,7 +29,7 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
           <>
             <button
               className="btn btn-sm btn-dark"
-              onClick={() => handlePlaceRequest(() => reservePlaceApi(place.id), updatedPlaceInList)}
+              onClick={() => handlePlaceRequest(() => reservePlaceApi(place.id , token), updatedPlaceInList)}
             >
               Reserve
             </button>
@@ -36,13 +39,13 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
         return (
           <>
             <button className="btn btn-sm btn-primary"
-              onClick={() => handlePlaceRequest(() => startParkingApi(findReservationByStatus('reserved' ,reservations).id), updatedPlaceInList)}>
+              onClick={() => handlePlaceRequest(() => startParkingApi(findReservationByStatus('reserved' ,reservations).id, token), updatedPlaceInList)}>
               Park hier
               </button>
 
             <button
               className="btn btn-sm btn-warning"
-              onClick={() => handlePlaceRequest(() => cancelReservationApi(findReservationByStatus('reserved' ,reservations).id), updatedPlaceInList)}
+              onClick={() => handlePlaceRequest(() => cancelReservationApi(findReservationByStatus('reserved' ,reservations).id, token), updatedPlaceInList)}
             >
               Cancel
             </button>
@@ -51,7 +54,7 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "occupied":
         return (
           <>
-            <button className="btn btn-sm btn-danger" onClick={() => handlePlaceRequest(() => endParkingApi(findReservationByStatus('parked' ,reservations).id), updatedPlaceInList)}>
+            <button className="btn btn-sm btn-danger" onClick={() => handlePlaceRequest(() => endParkingApi(findReservationByStatus('parked' ,reservations).id, token), updatedPlaceInList)}>
               End parking
               </button>
           </>

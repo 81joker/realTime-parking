@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import useValidation from "../../components/custom/useValdation";
 import Spinner from "../../components/layouts/Spinner";
@@ -8,6 +8,7 @@ import { loginUserApi } from "../../config/api";
 import {setCredentials} from '../../redux/slices/userSlice';
 
 export default function Login() {
+  const { isLoggedIn } = useSelector((state) => state.user)
   const [user, setUser] = useState({
     email: '',
     password: ''
@@ -16,6 +17,10 @@ export default function Login() {
   const [validationErrors, setValidationErrors] = useState(null)
   const [loading, setLoading] = useState(false)
   let navigate = useNavigate();
+
+  useEffect(()=>{
+    if(isLoggedIn) navigate('/')
+    },[isLoggedIn, navigate])
 
   const loginUser = async (e) => {
     e.preventDefault()

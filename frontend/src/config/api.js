@@ -39,9 +39,9 @@ export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {
 };
 
 // Fetch all places
-export const fetchPlacesApi = async () => {
+export const fetchPlacesApi = async (token) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/places`);
+    const response = await axios.get(`${API_BASE_URL}/places`, getConfig(token));
     return response.data;
   } catch (error) {
     console.error("Error fetching places:", error);
@@ -68,17 +68,22 @@ export const logoutUserApi = async (token) => {
   return res.data;
 }
 
+// Get logged in user
+export const getLoggedInUserApi = async (token) => {
+  const res = await axios.get(`${API_BASE_URL}/user`, getConfig(token));
+  return res.data;
+}
+
 // API calls
-export const reservePlaceApi = (placeId) =>
-  axios.post(`${API_BASE_URL}/book/reservation`, { place_id: placeId });
+export const reservePlaceApi = (placeId , token) =>
+  axios.post(`${API_BASE_URL}/book/reservation`, { place_id: placeId }, getConfig(token));
 
-export const startParkingApi = (reservation) =>
-  axios.put(`${API_BASE_URL}/start/${reservation}/parking`, {});
+export const startParkingApi = (reservation, token) =>
+  axios.put(`${API_BASE_URL}/start/${reservation}/parking`, {}, getConfig(token));
 
-export const endParkingApi = (reservation) =>
-  axios.put(`${API_BASE_URL}/end/${reservation}/parking`, {});
+export const endParkingApi = (reservation, token) =>
+  axios.put(`${API_BASE_URL}/end/${reservation}/parking`, {}, getConfig(token));
 
-export const cancelReservationApi = (reservation) =>
-  axios.put(`${API_BASE_URL}/cancel/${reservation}/reservation`, {});
-
+export const cancelReservationApi = (reservation, token) =>
+  axios.put(`${API_BASE_URL}/cancel/${reservation}/reservation`, {}, getConfig(token));
 export const getPlacesApi = () => axios.get(`${API_BASE_URL}/places`);
