@@ -16,8 +16,6 @@ class ReservationController extends Controller
 {
     /**
      * Book a reservation for a place.
-     * @return JsonResponse
-     * @param Request $request
      */
     public function store(Request $request): JsonResponse
     {
@@ -72,14 +70,14 @@ class ReservationController extends Controller
             $place->refresh();
 
             $message = 'Reservation created successfully.';
+
             return $this->placeResource($place, $message);
         });
     }
 
     /**
      * Cancel a reservation.
-     * @return JsonResponse
-     * @param Request $request
+     *
      * @param  User  $user
      */
     public function cancel(Request $request, Reservation $reservation): JsonResponse
@@ -103,14 +101,12 @@ class ReservationController extends Controller
         }
 
         $message = 'Reservation cancelled successfully.';
+
         return $this->placeResource($reservation->place, $message);
     }
 
     /**
      * Start parking for a reservation.
-     * @return JsonResponse
-     * @param Request $request
-     * @param  Reservation  $reservation
      */
     public function startParking(Request $request, Reservation $reservation): JsonResponse
     {
@@ -136,13 +132,13 @@ class ReservationController extends Controller
         }
 
         $message = 'Parking started successfully.';
+
         return $this->placeResource($reservation->place, $message);
     }
 
     /**
      * End parking for a reservation.
-     * @return JsonResponse
-     * @param Request $request
+     *
      * @param  User  $user
      */
     public function EndParking(Request $request, Reservation $reservation): JsonResponse
@@ -175,14 +171,14 @@ class ReservationController extends Controller
             'amount' => $amount,
         ]);
 
-        $message = 'Parking ended successfully. Total amount: ' . $amount . ' USD';
+        $message = 'Parking ended successfully. Total amount: '.$amount.' USD';
+
         return $this->placeResource($reservation->place, $message);
     }
 
     /**
      * Ensure the authenticated user owns the reservation.
-     * @return JsonResponse
-     * @param Request $request
+     *
      * @param  User  $user
      */
     private function ensureUserOwnsReservation(Request $request, Reservation $reservation): ?JsonResponse
@@ -197,12 +193,8 @@ class ReservationController extends Controller
         return null;
     }
 
-
     /**
      * Prepare the place resource response.
-     * @return JsonResponse
-     * @param Place $place
-     * @param string $message
      */
     private function placeResource(Place $place, string $message): JsonResponse
     {

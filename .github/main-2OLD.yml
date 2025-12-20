@@ -24,35 +24,23 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.4
-      - name: Cashe Composer dependencies
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
 
       - name: Create database
         run: touch ./database/database.sqlite
 
       - name: Copy .env
         run: cp .env.test .env
-      # - name: Generate app key
-      #   run: php artisan key:generate
 
       - name: Install app (runner)
         run: composer install --no-interaction --prefer-dist
 
       - name: Run migrations (runner)
-        run: php artisan migrate --force
+        run: php artisan migrate
 
      # remove the phpstan test for just now
       # - name: Test PHPStan
       #   run: ./vendor/bin/phpstan analyse
 
-      - name: Optimize Laravel app
-        run: |
-          php artisan config:clear
-          php artisan config:cache
       - name: Test PHPUnit
         run: ./vendor/bin/phpunit
 
@@ -86,8 +74,8 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      # --- Deploy Backend ---
-      - name: Deploy Backend using ssh
+      # --- Deploy ---
+      - name: Deploy using ssh
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -100,18 +88,4 @@ jobs:
 
             cd ${{ secrets.APP_PATH }} || { echo "Path not found: ${{ secrets.APP_PATH }}"; exit 1; }
             bash backend/deploy.sh
-            echo "Backend deployed successfully"
-
-      # --- Deploy Frontend (copy built files) ---
-      - name: Deploy Frontend using SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT }}
-          source: "frontend/build/*"
-          target: ${{ secrets.APP_PATH }}/backend/public
-          strip_components: 1
-          overwrite: true
+            echo "Deployed successfully"
