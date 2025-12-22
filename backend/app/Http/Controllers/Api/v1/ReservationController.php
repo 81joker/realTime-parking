@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PlaceResource;
 use App\Models\Place;
 use App\Models\Reservation;
+use App\Models\StripeSession;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Stripe\Checkout\Session;
+use Stripe\Exception\InvalidRequestException;
+use Stripe\Stripe;
 
 class ReservationController extends Controller
 {
@@ -19,10 +24,25 @@ class ReservationController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // check is already has unpaid reservation
+        $unpaidReservationExists = Reservation::where([
+            'user_id' => $request->user()->id,
+            'status' => 'finished',
+            // 'amount' => null,
+        ])->first();
+
+        if ($unpaidReservationExists) {
+            $stripeUrl = $this->createStripeCheckoutSession($unpaidReservationExists);
+
+            return response()->json([
+                'payment_url' => $stripeUrl,
+                'paymentError' => 'You have an unpaid reservation. Please pay it before making a new reservation.',
+            ]);
+        }
+
         // check if user already has reserved place
         $reservationExists = Reservation::where([
-            'user_id' => 1,
-            // 'user_id' => auth()->id(),
+            'user_id' => $request->user()->id,
             'status' => 'reserved',
         ])->exists();
 
@@ -34,8 +54,7 @@ class ReservationController extends Controller
         }
         // check if user already has reserved Park
         $reservationParked = Reservation::where([
-            'user_id' => 1,
-            // 'user_id' => auth()->id(),
+            'user_id' => $request->user()->id,
             'status' => 'parked',
         ])->exists();
 
@@ -57,7 +76,7 @@ class ReservationController extends Controller
         return DB::transaction(function () use ($request, $place) {
             // Create the reservation
             Reservation::create([
-                'user_id' => 1,
+                'user_id' => $request->user()->id,
                 'place_id' => $request->place_id,
                 'status' => 'reserved',
             ]);
@@ -183,8 +202,7 @@ class ReservationController extends Controller
      */
     private function ensureUserOwnsReservation(Request $request, Reservation $reservation): ?JsonResponse
     {
-        if ($reservation->user_id !== 1) {
-            // if ($reservation->user_id !== $user->id) {
+        if ($reservation->user_id !== $request->user()->id) {
             return response()->json([
                 'error' => 'No Active reservation not found.',
             ]);
@@ -202,5 +220,88 @@ class ReservationController extends Controller
             'message' => $message,
             'place' => PlaceResource::make($place->load('sector', 'reservations')),
         ]);
+    }
+
+    /**
+     * Pay reservation amount via Stripe Checkout.
+     */
+    private function createStripeCheckoutSession(Reservation $reservation): string
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+
+        $checkoutSession = \Stripe\Checkout\Session::create([
+            // 'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'Parking Reservation #'.$reservation->place->place_num,
+                    ],
+                    'unit_amount' => (int) $reservation->amount * 100, // amount in cents
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => env('FRONTEND_URL').'/payment-success?session_id={CHECKOUT_SESSION_ID}&reservation='.$reservation->id,
+            'cancel_url' => env('FRONTEND_URL').'/payment-cancel',
+        ]);
+
+        return $checkoutSession->url;
+    }
+
+    /**
+     * Handle Stripe webhook for payment success.
+     */
+    public function paySuccess(Request $request): JsonResponse
+    {
+
+        Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+        $sessionId = $request->session_id;
+        // Check is user has already this place
+        $unpaidReservationExists = Reservation::where([
+            'id' => $request->reservation_id,
+            'user_id' => $request->user()->id,
+            'status' => 'finished',
+        ])->first();
+        // if not found
+        if (! $unpaidReservationExists) {
+            return response()->json([
+                'error' => 'No reservation found for payment.',
+            ], 404);
+        }
+        // if no session id found
+        if (! $sessionId) {
+            return response()->json([
+                'error' => 'Payment not done successfully try again later.',
+            ]);
+        }
+
+        // checkout if stripe id is already paid
+        if (StripeSession::where('stripe_id', $sessionId)->exists()) {
+            return response()->json([
+                'error' => 'This payment session is already processed.',
+            ]);
+        }
+
+        try {
+            Session::retrieve($sessionId);
+            // Store the session id to prevent reuse
+            StripeSession::create([
+                'stripe_id' => $sessionId,
+            ]);
+
+            $unpaidReservationExists->paid = 1;
+            $unpaidReservationExists->save();
+
+            return response()->json([
+                'message' => 'Payment successful.',
+            ]);
+        } catch (InvalidRequestException $e) {
+            Log::error('Stripe Payment Error: '.$e->getMessage());
+
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 400);
+        }
     }
 }

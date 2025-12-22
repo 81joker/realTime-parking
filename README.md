@@ -37,3 +37,9 @@ switch cases
 Redux Persist is a library that allows Redux state to be persisted to storage (such as localStorage) and automatically rehydrated when the application reloads.
 
 It is commonly used to preserve important state like authentication, shopping cart data, and user settings across page refreshes.
+
+
+## instll composer require stripe/stripe-php
+
+
+## install  npm install sweetalert2

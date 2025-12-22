@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import axios from "axios";
-
+import Swal from "sweetalert2";
 // const API_BASE_URL = "http://localhost:8000/api";
 // const PRODUCTION_API_BASE_URL = "https://realtimepark.nehaddev.com/api";
 
@@ -21,10 +21,26 @@ const API_BASE_URL =
 
 export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {
   try {
+
     const res = await requestFn();
     // check for errors in the response
     if (res.data.error) {
-      toast.error(res.data.error);
+
+      toast.error(res.data.error)
+
+    } else if (res.data.paymentError && res.data.payment_url) {
+       
+      Swal.fire({
+        title: res.data.paymentError,
+        icon: "info",
+        html: `
+          You can pay it from,
+         <b><a href="${res.data.payment_url}" autofocus>links</a></b>,
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+      });
+
     } else {
       updatePlaceInList(res.data.place);
       toast.success(res.data.message);
@@ -33,6 +49,8 @@ export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {
     if (error?.response?.status === 404) {
       toast.error("Resveration not found or not available.");
     }
+    console.log(error);
+    
     console.error("Error reserving place:", error);
     toast.error("Something went wrong while reserving the place.");
   }
@@ -48,6 +66,23 @@ export const fetchPlacesApi = async (token) => {
     throw error;
   }
 };
+
+
+// Check payment success
+export const checkPamentSuccessApi = async (paymentData, token) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/pay/check-success`,
+      paymentData,
+      getConfig(token)
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error checking payment success:", error);
+    throw error;
+  }
+}
+
 
 // Register new user
 export const registerUserApi = async (userData) => {
@@ -75,7 +110,7 @@ export const getLoggedInUserApi = async (token) => {
 }
 
 // API calls
-export const reservePlaceApi = (placeId , token) =>
+export const reservePlaceApi = (placeId, token) =>
   axios.post(`${API_BASE_URL}/book/reservation`, { place_id: placeId }, getConfig(token));
 
 export const startParkingApi = (reservation, token) =>

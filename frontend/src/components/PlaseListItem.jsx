@@ -7,10 +7,10 @@ import { useSelector } from "react-redux";
 
 export default function PlaceListItem({ places, updatedPlaceInList }) {
 
-  const { token } = useSelector((state) => state.user);
+  const { token ,user } = useSelector((state) => state.user);
 
   const findReservationByStatus = ( status ,reservations) => {
-      const reservation = reservations.find((res) => res.user_id === 1 && res.status === status);
+      const reservation = reservations.find((res) => res.user_id === user.id && res.status === status);
       return reservation;
   }
   const rendersButtons = (place) => {
