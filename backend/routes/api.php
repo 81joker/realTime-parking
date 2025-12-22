@@ -21,8 +21,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cancel/{reservation}/reservation', [ReservationController::class, 'cancel']);
     Route::put('/start/{reservation}/parking', [ReservationController::class, 'startParking']);
     Route::put('/end/{reservation}/parking', [ReservationController::class, 'endParking']);
+    Route::post('/pay/check-success', [ReservationController::class, 'paySuccess']);
 });
-
 
 // User authentication routes
 Route::post('/user/register', [UserController::class, 'store']);

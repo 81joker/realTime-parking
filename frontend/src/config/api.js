@@ -67,6 +67,23 @@ export const fetchPlacesApi = async (token) => {
   }
 };
 
+
+// Check payment success
+export const checkPamentSuccessApi = async (paymentData, token) => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}/pay/check-success`,
+      paymentData,
+      getConfig(token)
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error checking payment success:", error);
+    throw error;
+  }
+}
+
+
 // Register new user
 export const registerUserApi = async (userData) => {
   const res = await axios.post(`${API_BASE_URL}/user/register`, userData);
