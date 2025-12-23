@@ -7,6 +7,7 @@ import Navbar from "./components/layouts/Navbar";
 import { useSelector } from "react-redux";
 import PrivateRoute from "./components/middleware /PrivateRoute";
 import Success from "./pages/payments/Success";
+import Profile from "./pages/user/Profile";
 
 export default function App() {
   const { isLoggedIn } = useSelector((state) => state.user);
@@ -22,6 +23,11 @@ export default function App() {
         <Route path="/payment-success" element={
           <PrivateRoute>
             <Success />
+          </PrivateRoute>
+        } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Profile />
           </PrivateRoute>
         } />
         <Route path="/register" element={<Register />} />

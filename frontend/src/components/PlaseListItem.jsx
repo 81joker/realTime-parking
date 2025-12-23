@@ -39,13 +39,16 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
         return (
           <>
             <button className="btn btn-sm btn-primary"
-              onClick={() => handlePlaceRequest(() => startParkingApi(findReservationByStatus('reserved' ,reservations).id, token), updatedPlaceInList)}>
+              onClick={() => handlePlaceRequest(() => startParkingApi(findReservationByStatus('reserved' ,reservations).id, token), updatedPlaceInList)}
+              hidden={!findReservationByStatus('reserved' ,reservations)}
+              >
               Park hier
               </button>
 
             <button
               className="btn btn-sm btn-warning"
               onClick={() => handlePlaceRequest(() => cancelReservationApi(findReservationByStatus('reserved' ,reservations).id, token), updatedPlaceInList)}
+              hidden={!findReservationByStatus('reserved' ,reservations)}
             >
               Cancel
             </button>
@@ -54,7 +57,9 @@ export default function PlaceListItem({ places, updatedPlaceInList }) {
       case "occupied":
         return (
           <>
-            <button className="btn btn-sm btn-danger" onClick={() => handlePlaceRequest(() => endParkingApi(findReservationByStatus('parked' ,reservations).id, token), updatedPlaceInList)}>
+            <button className="btn btn-sm btn-danger" onClick={() => handlePlaceRequest(() => endParkingApi(findReservationByStatus('parked' ,reservations).id, token), updatedPlaceInList)}
+            hidden={!findReservationByStatus('parked' ,reservations)}
+            >
               End parking
               </button>
           </>
