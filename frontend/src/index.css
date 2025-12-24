@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Winky+Rough:ital,wght@0,300..900;1,300..900&family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap');
+
+body {
+    font-family: "Winky Sans", sans-serif;
+}
+
+.nav-underline .nav-link {
+    color: #000;
+}
+
+.card.custom-card {
+    border-radius: 1rem !important;
+    /* smooth rounded corners */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.85) !important;
+    /* strong black shadow */
+    overflow: hidden !important;
+    /* keep rounded corners clean */
+}
