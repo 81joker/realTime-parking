@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\Api\v1\PlaceController;
-use App\Http\Controllers\Api\v1\ReservationController;
-use App\Http\Controllers\Api\v1\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Broadcast;
+use App\Http\Controllers\Api\v1\UserController;
+use App\Http\Controllers\Api\v1\PlaceController;
+use App\Http\Controllers\Api\v1\ReservationController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/start/{reservation}/parking', [ReservationController::class, 'startParking']);
     Route::put('/end/{reservation}/parking', [ReservationController::class, 'endParking']);
     Route::post('/pay/check-success', [ReservationController::class, 'paySuccess']);
+
+    Route::post('/broadcasting/auth', function (Request $request) {
+        return Broadcast::auth($request);
+    }) ;
 });
 
 // User authentication routes

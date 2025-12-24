@@ -43,3 +43,13 @@ It is commonly used to preserve important state like authentication, shopping ca
 
 
 ## install  npm install sweetalert2
+
+
+
+## Realtime Broadcasting
+### php artisan install:broadcasting
+### php artisan reverb:start
+This project uses Laravel’s broadcasting system to deliver real-time updates to the frontend using WebSockets.
+It enables features such as live notifications, real-time status updates, and interactive user experiences without page reloads.
+
+### npm i laravel-echo pusher-js

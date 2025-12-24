@@ -4,6 +4,8 @@ import { fetchPlacesApi } from "../config/api";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import Spinner from "./layouts/Spinner.jsx";
+import Pusher from "pusher-js";
+import Echo from "laravel-echo";
 
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
@@ -32,8 +34,33 @@ export default function PlaceList() {
         setLoading(false);
       }
     };
-    fetchPlaces();
+    fetchPlaces()
+    listenToThePlaceEvents()
   }, [token]);
+
+  const listenToThePlaceEvents = () => {
+    // setup laravel echo here
+    window.Pusher = Pusher
+    const echo = new Echo({
+      broadcaster: "pusher",
+      key: 'xh6byf7xga5ofb5dvcsf',
+      // host: window.location.hostname + ":6001",
+      wsHost: "localhost",
+      wsPort: 8080,
+      cluster: "mt1",
+      forceTLS: false,
+      disableStats: true,
+      authEndpoint: "http://localhost:8000/api/broadcasting/auth",
+      auth: { headers: {
+        Authorization: `Bearer ${token}`,
+      }, },
+    });
+    echo.private("places").listen('.placeUpdated', (event) => {
+      const updatedPlace = event.place;
+      updatePlaceInList(updatedPlace);
+      toast.info(`Place "${updatedPlace.name}" has been updated.`);
+    })
+  }
 
   return (
     <div>

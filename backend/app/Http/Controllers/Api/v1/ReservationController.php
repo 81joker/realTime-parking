@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\PlaceResource;
+use Carbon\Carbon;
+use Stripe\Stripe;
+use App\Models\User;
 use App\Models\Place;
 use App\Models\Reservation;
-use App\Models\StripeSession;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Stripe\Checkout\Session;
+use App\Models\StripeSession;
+use App\Events\PlaeStatusUpdated;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Stripe\Checkout\Session;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\PlaceResource;
 use Stripe\Exception\InvalidRequestException;
-use Stripe\Stripe;
 
 class ReservationController extends Controller
 {
@@ -88,6 +89,9 @@ class ReservationController extends Controller
 
             $place->refresh();
 
+            // Trigger the event to broadcast place status update
+            broadcast(new PlaeStatusUpdated($place))->toOthers();
+
             $message = 'Reservation created successfully.';
 
             return $this->placeResource($place, $message);
@@ -121,6 +125,8 @@ class ReservationController extends Controller
 
         $message = 'Reservation cancelled successfully.';
 
+        // Trigger the event to broadcast place status update
+        broadcast(new PlaeStatusUpdated($reservation->place))->toOthers();
         return $this->placeResource($reservation->place, $message);
     }
 
@@ -152,6 +158,7 @@ class ReservationController extends Controller
 
         $message = 'Parking started successfully.';
 
+        broadcast(new PlaeStatusUpdated($reservation->place))->toOthers();
         return $this->placeResource($reservation->place, $message);
     }
 
@@ -191,7 +198,8 @@ class ReservationController extends Controller
         ]);
 
         $message = 'Parking ended successfully. Total amount: '.$amount.' USD';
-
+        
+        broadcast(new PlaeStatusUpdated($reservation->place))->toOthers();
         return $this->placeResource($reservation->place, $message);
     }
 
