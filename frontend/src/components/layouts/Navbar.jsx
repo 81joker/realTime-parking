@@ -49,7 +49,7 @@ export default function Navbar() {
         </NavLink>
       </li>
       <li className="nav-item">
-        <NavLink className="nav-link">
+        <NavLink to="/profile"ss className="nav-link">
           <i className="bi bi-person"></i> {user?.name || "Guest"}
         </NavLink>
       </li>
