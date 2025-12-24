@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Broadcast;
 use App\Http\Controllers\Api\v1\UserController;
@@ -12,7 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('user/logout', [UserController::class, 'logout']);
     Route::get('user', function (Request $request) {
         return [
-            'user' => $request->user(),
+            'user' => UserResource::make($request->user()),
             'token' => $request->bearerToken(),
             // 'token' => $request->user()->currentAccessToken(),
         ];

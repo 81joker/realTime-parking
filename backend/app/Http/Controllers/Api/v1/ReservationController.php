@@ -269,7 +269,7 @@ class ReservationController extends Controller
         $unpaidReservationExists = Reservation::where([
             'id' => $request->reservation_id,
             'user_id' => $request->user()->id,
-            'status' => 'finished',
+            // 'status' => 'finished',
         ])->first();
         // if not found
         if (! $unpaidReservationExists) {

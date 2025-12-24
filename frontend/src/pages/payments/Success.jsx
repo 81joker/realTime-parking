@@ -33,7 +33,8 @@ export default function Success() {
       }
     };
     processPayment();
-  }, [location, token]);
+  }, []);
+  // }, [location, token]);
 
   return (
     <div className="row mt-5">
