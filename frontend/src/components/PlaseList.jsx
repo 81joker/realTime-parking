@@ -36,7 +36,7 @@ export default function PlaceList() {
     };
     fetchPlaces()
     listenToThePlaceEvents()
-  }, [token]);
+  },[]);
 
   const listenToThePlaceEvents = () => {
     // setup laravel echo here
@@ -65,6 +65,7 @@ export default function PlaceList() {
   return (
     <div>
       <div className="row my-4">
+        {/* TODO: remove the Spinner in the end Project becuse we have alredy in App in Suspense */}
         {loading ? (
           <Spinner />
         ) : (
