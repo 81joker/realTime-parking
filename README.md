@@ -53,3 +53,7 @@ This project uses Laravel’s broadcasting system to deliver real-time updates t
 It enables features such as live notifications, real-time status updates, and interactive user experiences without page reloads.
 
 ### npm i laravel-echo pusher-js
+
+php artisan serve
+php artisan reverb:start
+php artisan queue:work
