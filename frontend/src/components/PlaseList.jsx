@@ -43,14 +43,14 @@ export default function PlaceList() {
     window.Pusher = Pusher
     const echo = new Echo({
       broadcaster: "pusher",
-      key: 'xh6byf7xga5ofb5dvcsf',
+      key: import.meta.env.VITE_PUSHER_APP_KEY,
       // host: window.location.hostname + ":6001",
       wsHost: "localhost",
       wsPort: 8080,
       cluster: "mt1",
       forceTLS: false,
       disableStats: true,
-      authEndpoint: "http://localhost:8000/api/broadcasting/auth",
+      authEndpoint: import.meta.env.VITE_PUSHER_AUTH_URL,
       auth: { headers: {
         Authorization: `Bearer ${token}`,
       }, },
