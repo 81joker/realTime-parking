@@ -4,6 +4,8 @@ import { fetchPlacesApi } from "../config/api";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import Spinner from "./layouts/Spinner.jsx";
+import Pusher from "pusher-js";
+import Echo from "laravel-echo";
 
 export default function PlaceList() {
   const [places, setPlaces] = useState([]);
@@ -32,12 +34,38 @@ export default function PlaceList() {
         setLoading(false);
       }
     };
-    fetchPlaces();
-  }, [token]);
+    fetchPlaces()
+    listenToThePlaceEvents()
+  },[]);
+
+  const listenToThePlaceEvents = () => {
+    // setup laravel echo here
+    window.Pusher = Pusher
+    const echo = new Echo({
+      broadcaster: "pusher",
+      key: import.meta.env.VITE_PUSHER_APP_KEY,
+      // host: window.location.hostname + ":6001",
+      wsHost: "localhost",
+      wsPort: 8080,
+      cluster: "mt1",
+      forceTLS: false,
+      disableStats: true,
+      authEndpoint: import.meta.env.VITE_PUSHER_AUTH_URL,
+      auth: { headers: {
+        Authorization: `Bearer ${token}`,
+      }, },
+    });
+    echo.private("places").listen('.placeUpdated', (event) => {
+      const updatedPlace = event.place;
+      updatePlaceInList(updatedPlace);
+      toast.info(`Place "${updatedPlace.name}" has been updated.`);
+    })
+  }
 
   return (
     <div>
       <div className="row my-4">
+        {/* TODO: remove the Spinner in the end Project becuse we have alredy in App in Suspense */}
         {loading ? (
           <Spinner />
         ) : (

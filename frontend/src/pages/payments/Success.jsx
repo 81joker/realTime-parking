@@ -6,7 +6,10 @@ import { checkPamentSuccessApi } from "../../config/api";
 export default function Success() {
   const { token } = useSelector((state) => state.user);
   const location = useLocation();
-  const [status, setStatus] = useState("Processing...");
+  const [status, setStatus] = useState("processing...");
+  const [message, setMessage] = useState("Processing...");
+  const alertType  = status === 'error' ? 'danger' : status ==='success' ? 'success' : 'info';
+
 
   useEffect(() => {
     const processPayment = async () => {
@@ -23,22 +26,26 @@ export default function Success() {
           token
         );
         if (data.error) {
-          setStatus(data.error);
+          setStatus('error')
+          setMessage(data.error);
         } else {
-          setStatus(data.message);
+          setStatus('success')
+          setMessage(data.message);
         }
       } catch (error) {
+        setStatus('error')
         setStatus(`Payment Failed: ${error.message}`);
         console.log(error);
       }
     };
     processPayment();
   }, [location, token]);
+  // }, [location, token]);
 
   return (
     <div className="row mt-5">
       <div className="col-md-6 offset-md-3">
-        <div className="alert alert-success text-center">{status}</div>
+        <div className={`alert alert-${alertType} text-center`}>{message}</div>
       </div>
     </div>
   );

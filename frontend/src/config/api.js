@@ -29,7 +29,7 @@ export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {
       toast.error(res.data.error)
 
     } else if (res.data.paymentError && res.data.payment_url) {
-       
+
       Swal.fire({
         title: res.data.paymentError,
         icon: "info",
@@ -48,11 +48,10 @@ export const handlePlaceRequest = async (requestFn, updatePlaceInList) => {
   } catch (error) {
     if (error?.response?.status === 404) {
       toast.error("Resveration not found or not available.");
+    } else {
+      console.error("Error reserving place:", error);
+      toast.error("Something went wrong while reserving the place.");
     }
-    console.log(error);
-    
-    console.error("Error reserving place:", error);
-    toast.error("Something went wrong while reserving the place.");
   }
 };
 
