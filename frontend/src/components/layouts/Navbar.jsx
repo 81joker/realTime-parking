@@ -59,17 +59,6 @@ export default function Navbar() {
           <i className="bi bi-person-fill-down"></i> Logout
         </button>
       </li>
-
-      <li className="nav-item">
-        <NavLink to="/register" className="nav-link">
-          Register
-        </NavLink>
-      </li>
-      <li className="nav-item">
-        <NavLink to="/login" className="nav-link">
-          Login
-        </NavLink>
-      </li>
     </ul>
   );
 }
