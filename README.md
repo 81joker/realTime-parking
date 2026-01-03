@@ -4,6 +4,6 @@
 
 ### npm i laravel-echo pusher-js
 
-php artisan serve
-php artisan reverb:start
-php artisan queue:work
+#### php artisan serve
+#### php artisan reverb:start
+#### php artisan queue:work
