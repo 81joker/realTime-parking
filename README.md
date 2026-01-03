@@ -1,4 +1,3 @@
-## Realtime Broadcasting
 ### php artisan install:broadcasting
 ### php artisan reverb:start
 
