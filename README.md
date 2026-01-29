@@ -3,7 +3,7 @@
 A full-stack, real-time parking management web application that allows users to view available parking spots, make reservations, and pay securely online.
 
 ## 🔴 Live Demo
-Available upon request
+Available upon request : https://parking.nehaddev.com/
 
 ## 🐙 GitHub Repository
 https://github.com/81joker/realTime-parking
